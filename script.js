@@ -185,6 +185,7 @@ GameWorld.prototype.update = function() {
     if(score < highScore){
       highScore = score
       highDisplay.innerHTML = "High Score: " + highScore;
+      window.setTimeout(reset, 2000)
     }
   }
 }
