@@ -10,6 +10,8 @@ var score = 0;
 var highScore = 10000000;
 var scoreDisplay = document.getElementById('score')
 var highDisplay = document.getElementById('high')
+var momentDisplay = document.getElementById('moment')
+
 
 function Canvas2D(){
   this._canvas = document.getElementById('canvas');
@@ -112,13 +114,38 @@ function GameWorld(){
 }
 
 GameWorld.prototype.reset = function(){
-  this.redBall = new Ball(new Vector2(500,500),COLOR.RED, 1);
-  this.blackBall = new Ball(new Vector2(500,435),COLOR.BLACK, 2);
-  this.yellowBall = new Ball(new Vector2(435,500),COLOR.YELLOW, 1);
-  this.qball = new Ball(new Vector2(435,435),COLOR.WHITE, 1);
+  function randomPostion() {
+    var xPos = Math.random()* 1200 + 200;
+    var yPos = Math.random() * 600 + 200;
+    return new Vector2(xPos, yPos);
+  }
+  positions = [];
+  function checkValidPos(vector){
+    positions.forEach(function(position){
+      if (position.distFrom(vector) < 2.5 * BALL_DIAMETER){
+        return false;
+      }
+    })
+    return true;
+  }
+  for(var i = 0; i<4; i++){
+    var vector = randomPostion();
+    while (!checkValidPos(vector)){
+      console.log('sameshit')
+      vector = randomPostion();
+    }
+    positions.push(vector);
+  }
+
+  function randomMass(){
+    return Math.floor(Math.random() * 21 + 10)/10;
+  };
+  this.redBall = new Ball(positions[0].copy(),COLOR.RED, randomMass() );
+  this.blackBall = new Ball(positions[1].copy(),COLOR.BLACK, randomMass());
+  this.yellowBall = new Ball(positions[2].copy(),COLOR.YELLOW, randomMass());
+  this.qball = new Ball(positions[3].copy(),COLOR.WHITE, randomMass());
   this.balls = [this.redBall, this.blackBall, this.yellowBall, this.qball];
-  console.log(this.balls);
-  this.stick = new Stick(new Vector2(435,435), this.qball.shoot.bind(this.qball));
+  this.stick = new Stick(positions[3].copy(), this.qball.shoot.bind(this.qball));
   this.table = {
     TopY:85,
     RightX: 1493,
@@ -139,23 +166,24 @@ GameWorld.prototype.handleCollisions = function() {
   }
   if (document.getElementById("table") == null){
     createTable([
-        {Ball: 'Cue', Mass: this.balls[3]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[3]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[3]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[3]['mass']*this.balls[3]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[3]['mass']*this.balls[3]['velocity']['y']*1000)/1000 + "kgm/s"},
-        {Ball: 'Red', Mass: this.balls[0]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[0]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[0]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[0]['mass']*this.balls[0]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[0]['mass']*this.balls[0]['velocity']['y']*1000)/1000 + "kgm/s"},
-        {Ball: 'Yellow', Mass: this.balls[2]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[2]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[2]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[2]['mass']*this.balls[2]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[2]['mass']*this.balls[2]['velocity']['y']*1000)/1000 + "kgm/s"},
-        {Ball: 'Black', Mass: this.balls[1]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[1]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[1]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[1]['mass']*this.balls[1]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[1]['mass']*this.balls[1]['velocity']['y']*1000)/1000 + "kgm/s"}
+        {Ball: 'Cue', Mass: this.balls[3]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[3]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[3]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[3]['mass']*this.balls[3]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[3]['mass']*this.balls[3]['velocity']['y']*1000)/1000 + "kgm/s", NetMomentum: Math.trunc(Math.sqrt(Math.pow(this.balls[3]['mass']*this.balls[3]['velocity']['x'], 2) + Math.pow(this.balls[3]['mass']*this.balls[3]['velocity']['y'], 2))*1000)/1000 + 'kgm/s'},
+        {Ball: 'Red', Mass: this.balls[0]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[0]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[0]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[0]['mass']*this.balls[0]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[0]['mass']*this.balls[0]['velocity']['y']*1000)/1000 + "kgm/s", NetMomentum: Math.trunc(Math.sqrt(Math.pow(this.balls[0]['mass']*this.balls[0]['velocity']['x'], 2) + Math.pow(this.balls[0]['mass']*this.balls[0]['velocity']['y'], 2))*1000)/1000 + 'kgm/s'},
+        {Ball: 'Yellow', Mass: this.balls[2]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[2]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[2]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[2]['mass']*this.balls[2]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[2]['mass']*this.balls[2]['velocity']['y']*1000)/1000 + "kgm/s", NetMomentum: Math.trunc(Math.sqrt(Math.pow(this.balls[2]['mass']*this.balls[2]['velocity']['x'], 2) + Math.pow(this.balls[2]['mass']*this.balls[2]['velocity']['y'], 2))*1000)/1000 + 'kgm/s'},
+        {Ball: 'Black', Mass: this.balls[1]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[1]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[1]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[1]['mass']*this.balls[1]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[1]['mass']*this.balls[1]['velocity']['y']*1000)/1000 + "kgm/s", NetMomentum: Math.trunc(Math.sqrt(Math.pow(this.balls[1]['mass']*this.balls[1]['velocity']['x'], 2) + Math.pow(this.balls[2]['mass']*this.balls[2]['velocity']['y'], 2))*1000)/1000 + 'kgm/s'}
 
     ])  }
     else{
       document.getElementById("table").outerHTML = "";
       createTable([
-        {Ball: 'Cue', Mass: this.balls[3]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[3]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[3]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[3]['mass']*this.balls[3]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[3]['mass']*this.balls[3]['velocity']['y']*1000)/1000 + "kgm/s"},
-        {Ball: 'Red', Mass: this.balls[0]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[0]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[0]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[0]['mass']*this.balls[0]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[0]['mass']*this.balls[0]['velocity']['y']*1000)/1000 + "kgm/s"},
-        {Ball: 'Yellow', Mass: this.balls[2]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[2]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[2]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[2]['mass']*this.balls[2]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[2]['mass']*this.balls[2]['velocity']['y']*1000)/1000 + "kgm/s"},
-        {Ball: 'Black', Mass: this.balls[1]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[1]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[1]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[1]['mass']*this.balls[1]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[1]['mass']*this.balls[1]['velocity']['y']*1000)/1000 + "kgm/s"}
+        {Ball: 'Cue', Mass: this.balls[3]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[3]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[3]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[3]['mass']*this.balls[3]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[3]['mass']*this.balls[3]['velocity']['y']*1000)/1000 + "kgm/s", NetMomentum: Math.trunc(Math.sqrt(Math.pow(this.balls[3]['mass']*this.balls[3]['velocity']['x'], 2) + Math.pow(this.balls[3]['mass']*this.balls[3]['velocity']['y'], 2))*1000)/1000 + 'kgm/s'},
+        {Ball: 'Red', Mass: this.balls[0]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[0]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[0]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[0]['mass']*this.balls[0]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[0]['mass']*this.balls[0]['velocity']['y']*1000)/1000 + "kgm/s", NetMomentum: Math.trunc(Math.sqrt(Math.pow(this.balls[0]['mass']*this.balls[0]['velocity']['x'], 2) + Math.pow(this.balls[0]['mass']*this.balls[0]['velocity']['y'], 2))*1000)/1000 + 'kgm/s'},
+        {Ball: 'Yellow', Mass: this.balls[2]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[2]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[2]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[2]['mass']*this.balls[2]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[2]['mass']*this.balls[2]['velocity']['y']*1000)/1000 + "kgm/s", NetMomentum: Math.trunc(Math.sqrt(Math.pow(this.balls[2]['mass']*this.balls[2]['velocity']['x'], 2) + Math.pow(this.balls[2]['mass']*this.balls[2]['velocity']['y'], 2))*1000)/1000 + 'kgm/s'},
+        {Ball: 'Black', Mass: this.balls[1]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[1]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[1]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[1]['mass']*this.balls[1]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[1]['mass']*this.balls[1]['velocity']['y']*1000)/1000 + "kgm/s", NetMomentum: Math.trunc(Math.sqrt(Math.pow(this.balls[1]['mass']*this.balls[1]['velocity']['x'], 2) + Math.pow(this.balls[1]['mass']*this.balls[1]['velocity']['y'], 2))*1000)/1000 + 'kgm/s'}
 
       ])
     }
 }
+
 
 GameWorld.prototype.update = function() {
   this.handleCollisions();
@@ -185,8 +213,8 @@ GameWorld.prototype.update = function() {
     if(score < highScore){
       highScore = score
       highDisplay.innerHTML = "High Score: " + highScore;
-      window.setTimeout(reset, 2000)
     }
+    window.setTimeout(reset,2000);
   }
 }
 
