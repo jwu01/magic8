@@ -6,7 +6,11 @@
 4. check for bugs
 */
 
-var highScore = 0;
+var score = 0;
+var highScore = 10000000;
+var scoreDisplay = document.getElementById('score')
+var highDisplay = document.getElementById('high')
+
 function Canvas2D(){
   this._canvas = document.getElementById('canvas');
   this._canvasContext = this._canvas.getContext('2d');
@@ -88,7 +92,6 @@ Game.prototype.init = function(){
 Game.prototype.start = function(){
   PoolGame.init();
   PoolGame.mainLoop();
-
 }
 
 Game.prototype.mainLoop = function(){
@@ -103,7 +106,12 @@ Game.prototype.mainLoop = function(){
 let PoolGame = new Game();
 
 const BALL_INIT_POS = new Vector2(435,435)
+
 function GameWorld(){
+  this.reset();
+}
+
+GameWorld.prototype.reset = function(){
   this.redBall = new Ball(new Vector2(500,500),COLOR.RED, 1);
   this.blackBall = new Ball(new Vector2(500,435),COLOR.BLACK, 2);
   this.yellowBall = new Ball(new Vector2(435,500),COLOR.YELLOW, 1);
@@ -117,7 +125,6 @@ function GameWorld(){
     BottomY: 785,
     LeftX: 80
   }
-
 }
 
 GameWorld.prototype.handleCollisions = function() {
@@ -130,6 +137,24 @@ GameWorld.prototype.handleCollisions = function() {
       firstBall.collidesWith(secondBall);
     }
   }
+  if (document.getElementById("table") == null){
+    createTable([
+        {Ball: 'Cue', Mass: this.balls[3]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[3]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[3]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[3]['mass']*this.balls[3]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[3]['mass']*this.balls[3]['velocity']['y']*1000)/1000 + "kgm/s"},
+        {Ball: 'Red', Mass: this.balls[0]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[0]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[0]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[0]['mass']*this.balls[0]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[0]['mass']*this.balls[0]['velocity']['y']*1000)/1000 + "kgm/s"},
+        {Ball: 'Yellow', Mass: this.balls[2]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[2]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[2]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[2]['mass']*this.balls[2]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[2]['mass']*this.balls[2]['velocity']['y']*1000)/1000 + "kgm/s"},
+        {Ball: 'Black', Mass: this.balls[1]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[1]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[1]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[1]['mass']*this.balls[1]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[1]['mass']*this.balls[1]['velocity']['y']*1000)/1000 + "kgm/s"}
+
+    ])  }
+    else{
+      document.getElementById("table").outerHTML = "";
+      createTable([
+        {Ball: 'Cue', Mass: this.balls[3]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[3]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[3]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[3]['mass']*this.balls[3]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[3]['mass']*this.balls[3]['velocity']['y']*1000)/1000 + "kgm/s"},
+        {Ball: 'Red', Mass: this.balls[0]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[0]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[0]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[0]['mass']*this.balls[0]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[0]['mass']*this.balls[0]['velocity']['y']*1000)/1000 + "kgm/s"},
+        {Ball: 'Yellow', Mass: this.balls[2]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[2]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[2]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[2]['mass']*this.balls[2]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[2]['mass']*this.balls[2]['velocity']['y']*1000)/1000 + "kgm/s"},
+        {Ball: 'Black', Mass: this.balls[1]['mass'] + ' kg', XVelocity: Math.trunc(this.balls[1]['velocity']['x']*1000)/1000 + 'm/s', YVelocity: Math.trunc(this.balls[1]['velocity']['y']*1000)/1000 + 'm/s', XMomentum: Math.trunc(this.balls[1]['mass']*this.balls[1]['velocity']['x']*1000)/1000 + "kgm/s", YMomentum: Math.trunc(this.balls[1]['mass']*this.balls[1]['velocity']['y']*1000)/1000 + "kgm/s"}
+
+      ])
+    }
 }
 
 GameWorld.prototype.update = function() {
@@ -142,11 +167,25 @@ GameWorld.prototype.update = function() {
   if(!this.ballsMoving() && this.stick.shot){
     this.stick.reposition(this.qball.position);
   }
+  var that = this;
+  var reset = function(){
+    that.reset();
+    score = 0;
+    scoreDisplay.innerHTML = "Number of Shots: " + score
+  }
 
   if (!this.qball.visible){
-    document.body.innerHTML= "<h1> YOU LOST ByE BYE </h1>"
-    console.log('game over')
-    setTimeout("location.reload(false);",2500);
+    score = "YOU POTTED THE CUE BALL STUPID HEAD";
+    scoreDisplay.innerHTML = "Number of Shots: " + score
+    console.log(that);
+    window.setTimeout(reset, 2000)
+  }
+
+  if(!(this.redBall.visible || this.blackBall.visible || this.yellowBall.visible)){
+    if(score < highScore){
+      highScore = score
+      highDisplay.innerHTML = "High Score: " + highScore;
+    }
   }
 }
 
@@ -190,6 +229,8 @@ Stick.prototype.update = function(position) {
   }
   else if(this.momentum>0){
     this.shoot();
+    score++;
+    scoreDisplay.innerHTML = "Number of Shots: " + score;
   }
   this.updateRotation();
 }
@@ -378,8 +419,8 @@ Ball.prototype.collidesWithBall = function(ball){
   }
 
   const mtd = n.mult((BALL_DIAMETER-dist)/dist);
-  this.position = this.position.add(mtd.mult(0.5));
-  ball.position = ball.position.subtract(mtd.mult(0.5));
+  this.position = this.position.add(mtd.mult(0.51));
+  ball.position = ball.position.subtract(mtd.mult(0.51));
 
   m1 = new Number( this.mass);
   m2 = new Number( ball.mass);
@@ -481,4 +522,42 @@ Ball.prototype.collidesWith = function(object){
   else{
     this.collidesWithTable(object);
   }
+}
+
+function createTable(objectArray, fields, fieldTitles) {
+    let body = document.getElementsByTagName('body')[0];
+    let tbl = document.createElement('table');
+    tbl.setAttribute("style","width: 1500px; height: 200px; text-align:center; font-size: 22px")
+
+    tbl.id = "table";
+    let thead = document.createElement('thead');
+    let thr = document.createElement('tr');
+
+    for (p in objectArray[0]){
+        let th = document.createElement('th');
+        th.appendChild(document.createTextNode(p));
+        thr.appendChild(th);
+
+    }
+
+    thead.appendChild(thr);
+    tbl.appendChild(thead);
+
+    let tbdy = document.createElement('tbody');
+    let tr = document.createElement('tr');
+    objectArray.forEach((object) => {
+        let n = 0;
+        let tr = document.createElement('tr');
+        for (p in objectArray[0]){
+            var td = document.createElement('td');
+            td.setAttribute("style","border: 1px solid green");
+            td.appendChild(document.createTextNode(object[p]));
+            tr.appendChild(td);
+            n++;
+        };
+        tbdy.appendChild(tr);
+    });
+    tbl.appendChild(tbdy);
+    body.appendChild(tbl)
+    return tbl;
 }
