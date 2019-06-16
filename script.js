@@ -1,3 +1,12 @@
+/*
+0. randomize masses and locations
+1. Keep track of score and highScore
+2. tbl
+3. make a video
+4. check for bugs
+*/
+
+var highScore = 0;
 function Canvas2D(){
   this._canvas = document.getElementById('canvas');
   this._canvasContext = this._canvas.getContext('2d');
@@ -66,7 +75,7 @@ function getBallSpriteByColor(color){
       return sprites.blackBall;
     case COLOR.WHITE:
       return sprites.whiteBall;
-    
+
   }
 }
 function Game(){
@@ -103,15 +112,17 @@ function GameWorld(){
   console.log(this.balls);
   this.stick = new Stick(new Vector2(435,435), this.qball.shoot.bind(this.qball));
   this.table = {
-    TopY:80,
+    TopY:85,
     RightX: 1493,
     BottomY: 785,
     LeftX: 80
   }
+
 }
 
 GameWorld.prototype.handleCollisions = function() {
   for (var i = 0; i<this.balls.length; i++){
+    this.balls[i].handleBallInPocket();
     this.balls[i].collidesWith(this.table);
     for (var j = i +1; j <this.balls.length; j++){
       const firstBall = this.balls[i];
@@ -130,6 +141,12 @@ GameWorld.prototype.update = function() {
 
   if(!this.ballsMoving() && this.stick.shot){
     this.stick.reposition(this.qball.position);
+  }
+
+  if (!this.qball.visible){
+    document.body.innerHTML= "<h1> YOU LOST ByE BYE </h1>"
+    console.log('game over')
+    setTimeout("location.reload(false);",2500);
   }
 }
 
@@ -154,7 +171,7 @@ GameWorld.prototype.ballsMoving = function () {
 
 const STICK_ORIGIN = new Vector2(420,13);
 const STICK_SHOT_ORIGIN = new Vector2(400,13);
-const MAX_P = 70; 
+const MAX_P = 72;
 function Stick(position,onShoot){
   this.position = position;
   this.origin = STICK_ORIGIN.copy();
@@ -165,18 +182,22 @@ function Stick(position,onShoot){
 }
 
 Stick.prototype.update = function(position) {
-  if(!this.shot){
-    if(Mouse._left.down){
-      this.increaseMomentum();
-    }
-    else if(this.momentum>0){
-      this.shoot();
-    }
-    this.updateRotation();
+  if (this.shot){
+    return;
   }
+  if(Mouse._left.down){
+    this.increaseMomentum();
+  }
+  else if(this.momentum>0){
+    this.shoot();
+  }
+  this.updateRotation();
 }
 
 Stick.prototype.draw = function(){
+  if(this.shot){
+    return;
+  }
   Canvas.drawImage(sprites.stick, this.position, this.origin, this.rotation);
 }
 
@@ -187,9 +208,9 @@ Stick.prototype.updateRotation = function(){
 }
 
 Stick.prototype.increaseMomentum = function(){
-  if (this.power > MAX_P){
-    return; 
-  } 
+  if (this.momentum > MAX_P){
+    return;
+  }
   this.momentum += 1.5;
   this.origin.x += 5;
 }
@@ -239,6 +260,10 @@ Vector2.prototype.dot = function(vector){
 Vector2.prototype.length = function () {
   return Math.sqrt(this.x*this.x + this.y*this.y);
 };
+
+Vector2.prototype.distFrom = function(vector){
+  return this.subtract(vector).length();
+}
 
 
 function ButtonState(){
@@ -309,20 +334,28 @@ function Ball(position,color,mass){
   this.velocity = new Vector2();
   this.moving = false;
   this.sprite = getBallSpriteByColor(color);
-  this.mass = mass; 
+  this.mass = mass;
+  this.visible = true;
 }
 
 Ball.prototype.update = function() {
+  if(!this.visible){
+    return;
+  }
   this.position.addTo(this.velocity);
   //friction
-  this.velocity  = this.velocity.mult(0.97);
-  if (this.velocity.length()< 5){
+  this.velocity  = this.velocity.mult(1 - .02*this.mass);
+  if (this.velocity.length()< 0.5){
     this.velocity = new Vector2();
     this.moving = false;
   }
+
 }
 
 Ball.prototype.draw = function(){
+  if(!this.visible){
+    return;
+  }
   Canvas.drawImage(this.sprite, this.position, BALL_ORIGIN);
 }
 
@@ -333,9 +366,13 @@ Ball.prototype.shoot = function(momentum,rotation) {
 };
 
 Ball.prototype.collidesWithBall = function(ball){
-  const n = this.position.subtract(ball.position); 
+
+  if(!this.visible || !ball.visible){
+    return;
+  }
+  const n = this.position.subtract(ball.position);
   const dist = n.length();
-  
+
   if (dist > BALL_DIAMETER){
     return;
   }
@@ -344,14 +381,14 @@ Ball.prototype.collidesWithBall = function(ball){
   this.position = this.position.add(mtd.mult(0.5));
   ball.position = ball.position.subtract(mtd.mult(0.5));
 
-  m1 = new Number( this.mass); 
+  m1 = new Number( this.mass);
   m2 = new Number( ball.mass);
   v1 = this.velocity.copy();
   v2 = ball.velocity.copy();
   pos1 = this.position.copy();
-  pos2 = ball.position.copy(); 
+  pos2 = ball.position.copy();
 
-  const un = n.mult(1/dist); 
+  const un = n.mult(1/dist);
   const ut = new Vector2(-un.y, un.x);
 
   const v1n = un.dot(v1);
@@ -368,12 +405,37 @@ Ball.prototype.collidesWithBall = function(ball){
   v1tP = ut.mult(v1tS);
   v2nP = un.mult(v2nS);
   v2tP = ut.mult(v2tS);
-  
+
   this.velocity = v1nP.add(v1tP);
   ball.velocity = v2nP.add(v2tP);
 
   this.moving = true;
-  ball.moving = true; 
+  ball.moving = true;
+}
+
+POCKET_RADIUS = 46;
+POCKETS = [
+  new Vector2(80,80),
+  new Vector2(80,785),
+  new Vector2(785,60),
+  new Vector2(785,800),
+  new Vector2(1500,800),
+  new Vector2(1500,80),
+]
+
+Ball.prototype.handleBallInPocket = function(){
+  if(!this.moving || !this.visible){
+    return;
+  }
+  var inPocket = POCKETS.some(pocket => {
+    return this.position.distFrom(pocket) < POCKET_RADIUS;
+  });
+
+  if(!inPocket){
+    return;
+  }
+  this.visible = false;
+  this.moving = false;
 }
 
 Ball.prototype.collidesWithTable = function(table){
@@ -381,25 +443,33 @@ Ball.prototype.collidesWithTable = function(table){
     return;
   }
 
-  var collide = false; 
+  var collided = false;
   if (this.position.y <= table.TopY + BALL_RADIUS) {
+    this.position.y = table.TopY + BALL_RADIUS
     this.velocity = new Vector2(this.velocity.x, -this.velocity.y);
-    collided = true; 
+    collided = true;
   }
 
   if (this.position.x >= table.RightX - BALL_RADIUS) {
+    this.position.x = table.RightX - BALL_RADIUS
     this.velocity = new Vector2(-this.velocity.x, this.velocity.y);
-    collided = true; 
+    collided = true;
   }
 
   if (this.position.y >= table.BottomY - BALL_RADIUS) {
+    this.position.y = table.BottomY - BALL_RADIUS
     this.velocity = new Vector2(this.velocity.x, -this.velocity.y);
-    collided = true; 
+    collided = true;
   }
 
   if (this.position.x <= table.LeftX + BALL_RADIUS) {
+    this.position.x = table.LeftX + BALL_RADIUS
     this.velocity = new Vector2(-this.velocity.x, this.velocity.y);
-    collided = true; 
+    collided = true;
+  }
+
+  if (collided){
+    this.velocity = this.velocity.mult(0.98);
   }
 
 }
@@ -412,4 +482,3 @@ Ball.prototype.collidesWith = function(object){
     this.collidesWithTable(object);
   }
 }
-
