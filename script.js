@@ -182,6 +182,8 @@ GameWorld.prototype.handleCollisions = function() {
 
       ])
     }
+    momentDisplay.innerHTML = "System Momentum: " + Math.trunc((Math.sqrt(Math.pow(this.balls[3]['mass']*this.balls[3]['velocity']['x'], 2) + Math.pow(this.balls[3]['mass']*this.balls[3]['velocity']['y'], 2)) + Math.sqrt(Math.pow(this.balls[0]['mass']*this.balls[0]['velocity']['x'], 2) + Math.pow(this.balls[0]['mass']*this.balls[0]['velocity']['y'], 2)) + Math.sqrt(Math.pow(this.balls[2]['mass']*this.balls[2]['velocity']['x'], 2) + Math.pow(this.balls[2]['mass']*this.balls[2]['velocity']['y'], 2)) + Math.sqrt(Math.pow(this.balls[1]['mass']*this.balls[1]['velocity']['x'], 2) + Math.pow(this.balls[1]['mass']*this.balls[1]['velocity']['y'], 2)))*1000)/1000 + "kgm/s"
+
 }
 
 
@@ -414,7 +416,7 @@ Ball.prototype.update = function() {
   }
   this.position.addTo(this.velocity);
   //friction
-  this.velocity  = this.velocity.mult(1 - .02*this.mass);
+  this.velocity  = this.velocity.mult(1 - .01*this.mass);
   if (this.velocity.length()< 0.5){
     this.velocity = new Vector2();
     this.moving = false;
@@ -506,6 +508,7 @@ Ball.prototype.handleBallInPocket = function(){
   }
   this.visible = false;
   this.moving = false;
+  this.velocity = new Vector2(0,0);
 }
 
 Ball.prototype.collidesWithTable = function(table){
